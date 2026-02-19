@@ -14,7 +14,326 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          points: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          points?: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          points?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      consultations: {
+        Row: {
+          ai_insight: string | null
+          created_at: string
+          duration: string | null
+          enneagram_name: string | null
+          enneagram_type: number | null
+          id: string
+          improvements: string[] | null
+          patient_id: string
+          score: number | null
+          strengths: string[] | null
+          user_id: string
+        }
+        Insert: {
+          ai_insight?: string | null
+          created_at?: string
+          duration?: string | null
+          enneagram_name?: string | null
+          enneagram_type?: number | null
+          id?: string
+          improvements?: string[] | null
+          patient_id: string
+          score?: number | null
+          strengths?: string[] | null
+          user_id: string
+        }
+        Update: {
+          ai_insight?: string | null
+          created_at?: string
+          duration?: string | null
+          enneagram_name?: string | null
+          enneagram_type?: number | null
+          id?: string
+          improvements?: string[] | null
+          patient_id?: string
+          score?: number | null
+          strengths?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnel_data: {
+        Row: {
+          city: string | null
+          city_classification: string | null
+          created_at: string
+          hours_per_month: number | null
+          hours_per_treatment: number | null
+          id: string
+          manual_ticket: number | null
+          patients: Json | null
+          specialty: string | null
+          updated_at: string
+          use_patient_table: boolean | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          city_classification?: string | null
+          created_at?: string
+          hours_per_month?: number | null
+          hours_per_treatment?: number | null
+          id?: string
+          manual_ticket?: number | null
+          patients?: Json | null
+          specialty?: string | null
+          updated_at?: string
+          use_patient_table?: boolean | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          city_classification?: string | null
+          created_at?: string
+          hours_per_month?: number | null
+          hours_per_treatment?: number | null
+          id?: string
+          manual_ticket?: number | null
+          patients?: Json | null
+          specialty?: string | null
+          updated_at?: string
+          use_patient_table?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          created_at: string
+          email: string | null
+          enneagram_name: string | null
+          enneagram_type: number | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          enneagram_name?: string | null
+          enneagram_type?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          enneagram_name?: string | null
+          enneagram_type?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          best_streak: number
+          city: string | null
+          clinic_name: string | null
+          created_at: string
+          current_streak: number
+          full_name: string
+          id: string
+          last_active_date: string | null
+          level: number
+          phone: string | null
+          points: number
+          specialty: string
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          best_streak?: number
+          city?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          current_streak?: number
+          full_name?: string
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          phone?: string | null
+          points?: number
+          specialty?: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          best_streak?: number
+          city?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          current_streak?: number
+          full_name?: string
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          phone?: string | null
+          points?: number
+          specialty?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scripts: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      simulations: {
+        Row: {
+          created_at: string
+          feedback: Json | null
+          id: string
+          messages: Json | null
+          result: string | null
+          scenario_id: string
+          scenario_title: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          messages?: Json | null
+          result?: string | null
+          scenario_id: string
+          scenario_title: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          messages?: Json | null
+          result?: string | null
+          scenario_id?: string
+          scenario_title?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          analysis: Json | null
+          created_at: string
+          duration: string | null
+          id: string
+          score: number | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          score?: number | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis?: Json | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          score?: number | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

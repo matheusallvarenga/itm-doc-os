@@ -3,6 +3,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { WeeklyProgress } from "@/components/dashboard/WeeklyProgress";
+import { useAuth } from "@/hooks/useAuth";
 import {
   FileText,
   Crosshair,
@@ -90,6 +91,9 @@ const modules = [
 ];
 
 export default function Index() {
+  const { profile } = useAuth();
+  const firstName = profile?.full_name?.split(" ").slice(0, 2).join(" ") || "Usuário";
+
   return (
     <AppLayout>
       <div className="space-y-8 animate-fade-in">
@@ -97,7 +101,7 @@ export default function Index() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
-              Olá, <span className="accent-text">Dr. Carlos</span>
+              Olá, <span className="accent-text">{firstName}</span>
             </h1>
             <p className="text-muted-foreground mt-1">
               Bem-vindo ao seu painel de <span className="accent-text">poder</span>
