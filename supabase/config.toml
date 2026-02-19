@@ -1,1 +1,16 @@
 project_id = "glbwtdrzqxjnzodgdhtp"
+
+[functions.simulate-consultation]
+verify_jwt = false
+
+[functions.decode-patient]
+verify_jwt = false
+
+[functions.analyze-video]
+verify_jwt = false
+
+[functions.generate-script]
+verify_jwt = false
+
+[functions.export-sql]
+verify_jwt = false
