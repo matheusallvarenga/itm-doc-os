@@ -22,6 +22,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Perfil from "./pages/Perfil";
 import Funil from "./pages/Funil";
 import IconReference from "./pages/IconReference";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/icons" element={<ProtectedRoute><IconReference /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+            <Route path="/admin/alunos" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

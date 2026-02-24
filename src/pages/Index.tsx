@@ -13,7 +13,6 @@ import {
   VideoCamera,
   ChartBar,
   Trophy,
-  Flame,
   Lightning,
 } from "@phosphor-icons/react";
 
@@ -32,25 +31,44 @@ export default function Index() {
 
   const [scriptCount, setScriptCount] = useState(0);
   const [videoCount, setVideoCount] = useState(0);
+  const [simCount, setSimCount] = useState(0);
+  const [consultCount, setConsultCount] = useState(0);
+  const [patientCount, setPatientCount] = useState(0);
+  const [avgScore, setAvgScore] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const [s, v] = await Promise.all([
+    const fetchMetrics = async () => {
+      const [s, v, sim, con, pat, vScores, simScores, conScores] = await Promise.all([
         supabase.from("scripts").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("simulations").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("consultations").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("patients").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("videos").select("score").eq("user_id", user.id).not("score", "is", null),
+        supabase.from("simulations").select("score").eq("user_id", user.id).not("score", "is", null),
+        supabase.from("consultations").select("score").eq("user_id", user.id).not("score", "is", null),
       ]);
       setScriptCount(s.count || 0);
       setVideoCount(v.count || 0);
+      setSimCount(sim.count || 0);
+      setConsultCount(con.count || 0);
+      setPatientCount(pat.count || 0);
+      const allScores = [
+        ...(vScores.data || []).map(x => x.score as number),
+        ...(simScores.data || []).map(x => x.score as number),
+        ...(conScores.data || []).map(x => x.score as number),
+      ];
+      setAvgScore(allScores.length > 0 ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0);
     };
-    fetch();
+    fetchMetrics();
   }, [user]);
 
   const stats = [
-    { title: "Roteiros Criados", value: scriptCount, subtitle: "Total", icon: FileText, trend: scriptCount > 0 ? { value: scriptCount, isPositive: true } : undefined },
+    { title: "Roteiros Criados", value: scriptCount, subtitle: "Total", icon: FileText },
     { title: "Vídeos Analisados", value: videoCount, subtitle: "Total", icon: VideoCamera },
-    { title: "Streak Atual", value: `${profile?.current_streak || 0} dias`, subtitle: `Melhor: ${profile?.best_streak || 0} dias`, icon: Flame },
-    { title: "Pontuação", value: profile?.points || 0, subtitle: `Nível ${profile?.level || 1}`, icon: Trophy },
+    { title: "Simulações", value: simCount, subtitle: `${consultCount} consultas · ${patientCount} pacientes`, icon: ChatCircle },
+    { title: "Score Médio", value: avgScore > 0 ? `${avgScore}%` : "—", subtitle: `Streak: ${profile?.current_streak || 0} dias`, icon: Trophy },
   ];
 
   return (
