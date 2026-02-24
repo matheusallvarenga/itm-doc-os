@@ -4,6 +4,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { WeeklyProgress } from "@/components/dashboard/WeeklyProgress";
+import { BadgesPanel } from "@/components/dashboard/BadgesPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -117,6 +118,10 @@ export default function Index() {
           <div className="animate-fade-in-up" style={{ animationDelay: "1100ms" }}>
             <RecentActivity />
           </div>
+        </div>
+
+        <div className="animate-fade-in-up" style={{ animationDelay: "1200ms" }}>
+          <BadgesPanel />
         </div>
       </div>
     </AppLayout>
