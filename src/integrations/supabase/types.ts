@@ -41,6 +41,39 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          created_at: string
+          criteria_type: string
+          criteria_value: number
+          description: string
+          icon: string
+          id: string
+          key: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_type: string
+          criteria_value?: number
+          description: string
+          icon?: string
+          id?: string
+          key: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          criteria_type?: string
+          criteria_value?: number
+          description?: string
+          icon?: string
+          id?: string
+          key?: string
+          name?: string
+        }
+        Relationships: []
+      }
       consultations: {
         Row: {
           ai_insight: string | null
@@ -185,6 +218,7 @@ export type Database = {
           current_streak: number
           full_name: string
           id: string
+          is_active: boolean
           last_active_date: string | null
           level: number
           phone: string | null
@@ -203,6 +237,7 @@ export type Database = {
           current_streak?: number
           full_name?: string
           id?: string
+          is_active?: boolean
           last_active_date?: string | null
           level?: number
           phone?: string | null
@@ -221,6 +256,7 @@ export type Database = {
           current_streak?: number
           full_name?: string
           id?: string
+          is_active?: boolean
           last_active_date?: string | null
           level?: number
           phone?: string | null
@@ -300,6 +336,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.export-sql]
 verify_jwt = false
+
+[functions.admin-stats]
+verify_jwt = false
+
+[functions.check-badges]
+verify_jwt = false

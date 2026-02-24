@@ -5,6 +5,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Users,
   FileText,
@@ -15,9 +35,14 @@ import {
   Trophy,
   ChartBar,
   Clock,
+  PencilSimple,
+  UserMinus,
+  Trash,
+  Check,
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface AdminStats {
   totalUsers: number;
@@ -40,6 +65,7 @@ interface UserProfile {
   best_streak: number;
   avatar_url: string | null;
   created_at: string;
+  is_active: boolean;
 }
 
 interface ActivityItem {
@@ -59,23 +85,83 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Edit dialog state
+  const [editUser, setEditUser] = useState<UserProfile | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editSpecialty, setEditSpecialty] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Delete dialog state
+  const [deleteUser, setDeleteUser] = useState<UserProfile | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("admin-stats");
+      if (fnError) throw fnError;
+      setStats(data.stats);
+      setUsers(data.users);
+      setActivity(data.recentActivity);
+    } catch (e: any) {
+      setError(e.message || "Acesso negado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
-    const fetchData = async () => {
-      try {
-        const { data, error: fnError } = await supabase.functions.invoke("admin-stats");
-        if (fnError) throw fnError;
-        setStats(data.stats);
-        setUsers(data.users);
-        setActivity(data.recentActivity);
-      } catch (e: any) {
-        setError(e.message || "Acesso negado");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [user]);
+
+  const handleEdit = (u: UserProfile) => {
+    setEditUser(u);
+    setEditName(u.full_name);
+    setEditSpecialty(u.specialty);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editUser) return;
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-stats?action=update_profile", {
+        body: { user_id: editUser.user_id, full_name: editName, specialty: editSpecialty },
+      });
+      if (error) throw error;
+      toast.success("Perfil atualizado");
+      setEditUser(null);
+      fetchData();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleActive = async (u: UserProfile) => {
+    try {
+      await supabase.functions.invoke("admin-stats?action=toggle_active", {
+        body: { user_id: u.user_id, is_active: !u.is_active },
+      });
+      toast.success(u.is_active ? "Aluno desativado" : "Aluno reativado");
+      fetchData();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteUser) return;
+    try {
+      await supabase.functions.invoke("admin-stats?action=delete_user", {
+        body: { user_id: deleteUser.user_id },
+      });
+      toast.success("Aluno excluído");
+      setDeleteUser(null);
+      fetchData();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
 
   if (loading) {
     return (
@@ -148,13 +234,13 @@ export default function Admin() {
                 Alunos ({users.length})
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+            <CardContent className="space-y-3 max-h-[500px] overflow-y-auto">
               {users.map((u) => {
                 const initials = u.full_name
                   ? u.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
                   : "?";
                 return (
-                  <div key={u.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                  <div key={u.id} className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${u.is_active ? "bg-secondary/30 hover:bg-secondary/50" : "bg-destructive/10 opacity-60"}`}>
                     <Avatar className="w-9 h-9">
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {initials}
@@ -164,12 +250,23 @@ export default function Admin() {
                       <p className="text-sm font-medium text-foreground truncate">{u.full_name || "Sem nome"}</p>
                       <p className="text-xs text-muted-foreground">{u.specialty || "Sem especialidade"}</p>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="flex items-center gap-1">
-                        <Trophy weight="fill" className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-sm font-medium text-foreground">{u.points}</span>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="text-right mr-2">
+                        <div className="flex items-center gap-1">
+                          <Trophy weight="fill" className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-sm font-medium text-foreground">{u.points}</span>
+                        </div>
+                        <Badge variant="secondary" className="text-[10px]">Nv. {u.level}</Badge>
                       </div>
-                      <Badge variant="secondary" className="text-[10px]">Nv. {u.level}</Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(u)}>
+                        <PencilSimple className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleToggleActive(u)}>
+                        {u.is_active ? <UserMinus className="w-4 h-4 text-orange-500" /> : <Check className="w-4 h-4 text-green-500" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteUser(u)}>
+                        <Trash className="w-4 h-4 text-destructive" />
+                      </Button>
                     </div>
                   </div>
                 );
@@ -188,7 +285,7 @@ export default function Admin() {
                 Atividade Recente (Global)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+            <CardContent className="space-y-3 max-h-[500px] overflow-y-auto">
               {activity.map((a) => (
                 <div key={a.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/30 transition-colors">
                   <div className="flex-1 min-w-0">
@@ -210,6 +307,50 @@ export default function Admin() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editUser} onOpenChange={() => setEditUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Aluno</DialogTitle>
+            <DialogDescription>Altere os dados do aluno abaixo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Nome</label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Especialidade</label>
+              <Input value={editSpecialty} onChange={(e) => setEditSpecialty(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Aluno</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteUser?.full_name}</strong>? Esta ação não pode ser desfeita e todos os dados do aluno serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
