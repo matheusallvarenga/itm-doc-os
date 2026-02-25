@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProfileBadges } from "@/components/profile/ProfileBadges";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -241,6 +242,10 @@ export default function Perfil() {
                   ))}
                 </div>
               )}
+            </div>
+
+            <div>
+              <ProfileBadges />
             </div>
           </div>
         </div>

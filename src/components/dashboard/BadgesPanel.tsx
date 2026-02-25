@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 import {
   FileText,
   ChatCircle,
@@ -44,7 +45,15 @@ export function BadgesPanel() {
 
     const fetchBadges = async () => {
       // Check for new badges first
-      await supabase.functions.invoke("check-badges");
+      const { data: checkResult } = await supabase.functions.invoke("check-badges");
+      if (checkResult?.newBadges?.length > 0) {
+        for (const badgeName of checkResult.newBadges) {
+          toast({
+            title: "🏆 Nova Conquista Desbloqueada!",
+            description: badgeName,
+          });
+        }
+      }
 
       // Fetch all badges + user's earned badges
       const [allBadges, userBadges] = await Promise.all([
