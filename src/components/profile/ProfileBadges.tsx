@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
+import { fireBadgeConfetti } from "@/lib/confetti";
 import {
   FileText,
   ChatCircle,
@@ -61,6 +62,7 @@ export function ProfileBadges() {
     const fetch = async () => {
       const { data: checkResult } = await supabase.functions.invoke("check-badges");
       if (checkResult?.newBadges?.length > 0) {
+        fireBadgeConfetti();
         for (const name of checkResult.newBadges) {
           toast({ title: "🏆 Nova Conquista!", description: name });
         }
