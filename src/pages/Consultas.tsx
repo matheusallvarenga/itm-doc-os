@@ -14,6 +14,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRecordingTimer } from "@/hooks/use-recording-timer";
 
 interface PatientRow {
   id: string;
@@ -40,7 +41,7 @@ interface ConsultationRow {
   created_at: string;
 }
 
-type ViewState = "list" | "edit" | "history" | "add";
+type ViewState = "list" | "edit" | "history" | "add" | "recording";
 
 export default function Consultas() {
   const { user } = useAuth();
@@ -53,6 +54,44 @@ export default function Consultas() {
   const [viewState, setViewState] = useState<ViewState>("list");
   const [expandedConsultation, setExpandedConsultation] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const { time: recordingTime, isRunning: isRecording, isPaused, start: startTimer, pause: pauseTimer, stop: stopTimer, reset: resetTimer } = useRecordingTimer();
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
+
+  const handleStartRecording = () => {
+    setShowPatientModal(false);
+    setViewState("recording");
+    startTimer();
+  };
+
+  const handleToggleRecording = () => {
+    if (isPaused) startTimer();
+    else pauseTimer();
+  };
+
+  const handleStopRecording = async () => {
+    stopTimer();
+    if (!user || !selectedPatient) return;
+    const { error } = await supabase.from("consultations").insert({
+      user_id: user.id,
+      patient_id: selectedPatient.id,
+      duration: formatTime(recordingTime),
+    });
+    if (error) {
+      toast({ title: "Erro ao salvar consulta", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Consulta registrada com sucesso!" });
+      await fetchConsultations(selectedPatient.id);
+    }
+    resetTimer();
+    setViewState("history");
+  };
 
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
@@ -266,6 +305,57 @@ export default function Consultas() {
     );
   }
 
+  // Recording View
+  if (viewState === "recording" && selectedPatient) {
+    return (
+      <AppLayout>
+        <div className="min-h-full bg-background p-6 flex flex-col items-center justify-center">
+          <button onClick={() => { stopTimer(); resetTimer(); setViewState("list"); }} className="self-start flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
+            <ArrowLeft weight="bold" className="w-5 h-5" /><span>Cancelar</span>
+          </button>
+
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-semibold">{getInitials(selectedPatient.name)}</div>
+            <h2 className="text-lg font-semibold text-foreground">{selectedPatient.name}</h2>
+          </div>
+
+          <div className="relative mb-6">
+            <div className={cn("w-5 h-5 rounded-full", isRecording && !isPaused ? "bg-red-500 animate-pulse" : "bg-muted-foreground/40")} />
+          </div>
+
+          <div className="flex items-end justify-center gap-[3px] h-16 mb-8">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                className={cn("w-1 rounded-full transition-all duration-300", isRecording && !isPaused ? "bg-primary" : "bg-muted-foreground/30")}
+                style={{
+                  height: isRecording && !isPaused ? `${20 + Math.sin(Date.now() / 200 + i) * 20}px` : "8px",
+                  animationDelay: `${i * 50}ms`,
+                }}
+              />
+            ))}
+          </div>
+
+          <p className="text-5xl font-mono font-semibold text-foreground mb-2 tracking-wider">{formatTime(recordingTime)}</p>
+          <p className="text-muted-foreground text-sm mb-10">
+            {isRecording && !isPaused ? "Gravando consulta..." : isPaused ? "Pausado" : "Pronto para gravar"}
+          </p>
+
+          <div className="flex gap-4">
+            <Button variant="outline" size="lg" className="gap-2 rounded-full px-6" onClick={handleToggleRecording}>
+              {isPaused ? <Play weight="fill" className="w-5 h-5" /> : <Pause weight="fill" className="w-5 h-5" />}
+              {isPaused ? "Retomar" : "Pausar"}
+            </Button>
+            <Button size="lg" className="gap-2 rounded-full px-6 bg-red-600 hover:bg-red-700" onClick={handleStopRecording}>
+              <Stop weight="fill" className="w-5 h-5" />
+              Finalizar
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   // List View
   return (
     <AppLayout>
@@ -312,6 +402,9 @@ export default function Consultas() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-3 mt-4">
+              <Button className="w-full gap-2 justify-start" size="lg" onClick={handleStartRecording}>
+                <Microphone weight="fill" className="w-5 h-5" />Analisar Nova Consulta
+              </Button>
               <Button variant="outline" className="w-full gap-2 justify-start" size="lg" onClick={handleViewHistory}>
                 <ClockCounterClockwise weight="regular" className="w-5 h-5" />Ver Histórico
               </Button>
