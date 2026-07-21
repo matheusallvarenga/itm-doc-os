@@ -72,7 +72,7 @@ export default function Simulador() {
   const [recentSimulations, setRecentSimulations] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, avgScore: 0 });
   const chatRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load recent simulations
   useEffect(() => {

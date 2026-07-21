@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://glbwtdrzqxjnzodgdhtp.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "intentum-doc-os-mcp",
+      "version": "0.1.0",
+      "title": "INTENTUM Doc OS"
+    },
+    "tools": [
+      {
+        "name": "get_profile",
+        "title": "Get my profile",
+        "description": "Return the signed-in doctor's profile: name, specialty, points, level, and current streak.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_stats_summary",
+        "title": "Get my stats summary",
+        "description": "Return a summary of the signed-in doctor's totals: scripts, patients, simulations, videos, consultations, average score.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_scripts",
+        "title": "List my scripts",
+        "description": "List the signed-in doctor's saved marketing scripts (roteiros). Newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Max scripts to return. Defaults to 20."
+            },
+            "type": {
+              "type": "string",
+              "description": "Optional format filter: Reels, Stories, or Anúncio."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_script",
+        "title": "Create a script",
+        "description": "Create a new marketing script (roteiro) in the signed-in doctor's library. Use for saving AI-generated or hand-written scripts.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Short title for the script."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Reels",
+                "Stories",
+                "Anúncio"
+              ],
+              "description": "Format of the script."
+            },
+            "content": {
+              "type": "string",
+              "description": "Full script text."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "rascunho",
+                "completo"
+              ],
+              "description": "Draft or completed. Defaults to 'completo'."
+            }
+          },
+          "required": [
+            "title",
+            "type"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_patients",
+        "title": "List my patients",
+        "description": "List the signed-in doctor's saved patients, including any decoded Enneagram type.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Max patients to return. Defaults to 20."
+            },
+            "search": {
+              "type": "string",
+              "description": "Optional case-insensitive substring match on patient name."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_activity",
+        "title": "List recent activity",
+        "description": "List the signed-in doctor's most recent activity events (scripts, simulations, decodings, video analyses) with points earned.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Max entries to return. Defaults to 20."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
