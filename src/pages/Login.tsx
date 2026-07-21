@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,14 @@ import { TriangleLogo } from "@/components/TriangleLogo";
 import { toast } from "@/hooks/use-toast";
 import { Eye, EyeSlash, EnvelopeSimple, Lock } from "@phosphor-icons/react";
 
+// Only return the `next` param if it is a same-origin relative path. This
+// stops open-redirects and keeps the OAuth consent handoff safe.
+function safeNext(raw: string | null): string {
+  if (!raw) return "/";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +23,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get("next"));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +41,8 @@ export default function Login() {
         variant: "destructive",
       });
     } else {
-      navigate("/");
+      // Full navigation so absolute paths like /.lovable/oauth/consent work.
+      window.location.href = next;
     }
   };
 
